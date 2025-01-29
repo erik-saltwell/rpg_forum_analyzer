@@ -4,18 +4,18 @@ from ConversationNode import ConversationNode
 import praw
 from praw.models import Comment, Submission
 from datetime import datetime
+from utils.config_loader import Config
 
 
 class _RedditScraper(ForumScraper):
     def __init__(self, subreddit_name: str) -> None:
-        from utils.config_loader import Config
         config = Config()
         reddit_config = config.reddit
         self.SubredditName = subreddit_name
         self.reddit = praw.Reddit(
-            client_id=reddit_config.client_id,
-            client_secret=reddit_config.client_secret,
-            user_agent=reddit_config.user_agent
+            client_id=reddit_config['client_id'],
+            client_secret=reddit_config['client_secret'],
+            user_agent=reddit_config['user_agent']
         )
 
     def _comment_to_node(self, comment: Comment) -> ConversationNode:
