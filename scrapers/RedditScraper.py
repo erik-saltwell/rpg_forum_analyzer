@@ -36,7 +36,7 @@ class _RedditScraper(ForumScraper):
     def Scrape(self) -> Iterator[ConversationNode]:
         subreddit = self.reddit.subreddit(self.SubredditName)
 
-        for submission in subreddit.new(limit=None):
+        for submission in subreddit.new(limit=1000000):
             # Ensure all comments are loaded
             submission.comments.replace_more(limit=None)
 
