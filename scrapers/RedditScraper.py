@@ -9,9 +9,10 @@ from utils.config_loader import Config
 
 class _RedditScraper(ForumScraper):
     def _normalize_subreddit_name(self, subreddit_name: str) -> str:
-        """Ensure the subreddit name starts with 'r/'."""
-        if not subreddit_name.lower().startswith('r/'):
-            return f'r/{subreddit_name}'
+        """Ensure the subreddit name does not start with 'r/' or 'r\\'."""
+        subreddit_name_lower = subreddit_name.lower()
+        if subreddit_name_lower.startswith('r/') or subreddit_name_lower.startswith('r\\'):
+            return subreddit_name[2:]
         return subreddit_name
 
     def __init__(self, subreddit_name: str) -> None:
