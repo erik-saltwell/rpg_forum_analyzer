@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, cast
 import json
 from pathlib import Path
 
