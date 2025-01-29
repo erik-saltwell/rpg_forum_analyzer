@@ -11,7 +11,9 @@ class _RedditScraper(ForumScraper):
     def _normalize_subreddit_name(self, subreddit_name: str) -> str:
         """Ensure the subreddit name does not start with 'r/' or 'r\\'."""
         subreddit_name_lower = subreddit_name.lower()
-        if subreddit_name_lower.startswith('r/') or subreddit_name_lower.startswith('r\\'):
+        if subreddit_name_lower.startswith("r/") or subreddit_name_lower.startswith(
+            "r\\"
+        ):
             return subreddit_name[2:]
         return subreddit_name
 
