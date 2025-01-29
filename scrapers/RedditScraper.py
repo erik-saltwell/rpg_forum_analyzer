@@ -1,6 +1,6 @@
 from scrapers.ForumScraper import ForumScraper
 from typing import Iterator, cast
-from ConversationNode import ConversationNode
+from core.ConversationNode import ConversationNode
 import praw
 from praw.models import Comment, Submission
 from datetime import datetime

@@ -1,4 +1,4 @@
-from ConversationNode import ConversationNode
+from core.ConversationNode import ConversationNode
 from typing import Iterator
 from abc import ABC, abstractmethod
 
