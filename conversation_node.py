@@ -14,5 +14,5 @@ class ConversationNode:
             responses if responses is not None else []
         )
 
-    def add_comment(self, comment: "ConversationNode") -> None:
-        self.responses.append(comment)
+    def add_response(self, comment: "ConversationNode") -> None:
+        pass  # implement this AI!
