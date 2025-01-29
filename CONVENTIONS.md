@@ -1,0 +1,1 @@
+- Use types everywhere possible.
