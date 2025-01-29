@@ -1,1 +1,2 @@
 - Use types everywhere possible.
+- Respond to chats in english always
