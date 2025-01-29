@@ -8,10 +8,16 @@ from utils.config_loader import Config
 
 
 class _RedditScraper(ForumScraper):
+    def _normalize_subreddit_name(self, subreddit_name: str) -> str:
+        """Ensure the subreddit name starts with 'r/'."""
+        if not subreddit_name.lower().startswith('r/'):
+            return f'r/{subreddit_name}'
+        return subreddit_name
+
     def __init__(self, subreddit_name: str) -> None:
         config = Config()
         reddit_config = config.reddit
-        self.SubredditName = subreddit_name
+        self.SubredditName = self._normalize_subreddit_name(subreddit_name)
         self.reddit = praw.Reddit(
             client_id=reddit_config["client_id"],
             client_secret=reddit_config["client_secret"],
@@ -30,13 +36,13 @@ class _RedditScraper(ForumScraper):
     def Scrape(self) -> Iterator[ConversationNode]:
         subreddit = self.reddit.subreddit(self.SubredditName)
 
-        for submission in subreddit.hot(limit=10):
+        for submission in subreddit.new(limit=None):
             # Ensure all comments are loaded
             submission.comments.replace_more(limit=None)
 
             # Create root node from submission
             root = ConversationNode(
-                text=submission.selftext,
+                text=submission.selftext or submission.title,
                 timestamp=datetime.fromtimestamp(submission.created_utc),
                 responses=[
                     self._comment_to_node(comment) for comment in submission.comments
