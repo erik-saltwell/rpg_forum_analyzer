@@ -5,5 +5,5 @@ from abc import ABC, abstractmethod
 
 class ForumScraper(ABC):
     @abstractmethod
-    def Scrape(self) -> Iterator[ConversationNode]:
+    def Scrape(self, limit: int) -> Iterator[ConversationNode]:
         pass
