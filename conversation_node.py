@@ -15,4 +15,4 @@ class ConversationNode:
         )
 
     def add_comment(self, comment: "ConversationNode") -> None:
-        pass  # implement this AI!
+        self.responses.append(comment)
