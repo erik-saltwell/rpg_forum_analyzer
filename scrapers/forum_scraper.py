@@ -17,6 +17,6 @@ class ForumType(Enum):
 
 class ForumScraperFactory:
     def create_scraper(
-        self, forum_type: ForumType, tags: list[str]
-    ) -> None:  # change the signature to use varargs AI!
+        self, forum_type: ForumType, *tags: str
+    ) -> None:
         pass
