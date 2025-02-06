@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import Iterator, Set
-from stackapi import StackAPI, StackAPIError
+from stackapi import StackAPI
 from core.ConversationNode import ConversationNode
 from scrapers.ForumScraper import ForumScraper
 from utils.config_loader import Config
-from utils.logger import logger
 
 
 class StackExchangeScraper(ForumScraper):
@@ -40,17 +39,10 @@ class StackExchangeScraper(ForumScraper):
         )
 
     def Scrape(self, limit: int = 50) -> Iterator[ConversationNode]:
-        try:
-            response = self.stackapi.fetch(
-                'search/advanced',
-                **self._build_query_params()
-            )
-            
-            for post in response.get('items', [])[:limit]:
-                yield self._process_post(post)
+        response = self.stackapi.fetch(
+            'search/advanced',
+            **self._build_query_params()
+        )
 
-        except StackAPIError as e:
-            logger.error(f"StackAPI Error: {e.message}")
-            if e.code == 'throttle_violation':
-                logger.warning("API quota exhausted, backing off...")
-            return []
+        for post in response.get('items', [])[:limit]:
+            yield self._process_post(post)
