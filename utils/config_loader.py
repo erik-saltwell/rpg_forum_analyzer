@@ -1,15 +1,18 @@
-from typing import TypedDict, Optional
+from dataclasses import dataclass
+from typing import Optional
 import os
 from dotenv import load_dotenv
 
 
-class RedditConfig(TypedDict):
+@dataclass
+class RedditConfig:
     client_id: str
     client_secret: str
     user_agent: str
 
 
-class StackExchangeConfig(TypedDict):
+@dataclass
+class StackExchangeConfig:
     api_key: str
     site: str
     content_filter: str
@@ -26,7 +29,7 @@ class Config:
 
     def _load_configs(self) -> None:
         load_dotenv()  # Load environment variables from .env file
-        
+
         # Load Reddit configuration
         self.reddit = RedditConfig(
             client_id=os.getenv("REDDIT_CLIENT_ID", ""),
