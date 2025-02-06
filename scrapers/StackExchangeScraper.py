@@ -1,19 +1,25 @@
 from datetime import datetime
 from typing import Iterator, Set
-import requests
+from stackapi import StackAPI, StackAPIError
 from core.ConversationNode import ConversationNode
 from scrapers.ForumScraper import ForumScraper
 from utils.config_loader import Config
+from utils.logger import logger
 
 
 class StackExchangeScraper(ForumScraper):
-    BASE_API = "https://api.stackexchange.com/2.3"
 
     def __init__(self, keywords: Set[str]) -> None:
         self.keywords = {k.lower() for k in keywords}
         self.config = Config().stackexchange
+        self.stackapi = StackAPI(
+            site=self.config.site,
+            key=self.config.api_key,
+            page_size=100,
+            max_pages=1
+        )
 
-    def _build_search_params(self) -> dict:
+    def _build_query_params(self) -> dict:
         return {
             'site': self.config.site,
             'key': self.config.api_key,
@@ -34,12 +40,17 @@ class StackExchangeScraper(ForumScraper):
         )
 
     def Scrape(self, limit: int = 50) -> Iterator[ConversationNode]:
-        params = self._build_search_params()
-        response = requests.get(
-            f"{self.BASE_API}/search/advanced",
-            params=params
-        )
-        response.raise_for_status()
+        try:
+            response = self.stackapi.fetch(
+                'search/advanced',
+                **self._build_query_params()
+            )
+            
+            for post in response.get('items', [])[:limit]:
+                yield self._process_post(post)
 
-        for post in response.json()['items'][:limit]:
-            yield self._process_post(post)
+        except StackAPIError as e:
+            logger.error(f"StackAPI Error: {e.message}")
+            if e.code == 'throttle_violation':
+                logger.warning("API quota exhausted, backing off...")
+            return []
