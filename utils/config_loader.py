@@ -2,10 +2,12 @@ from typing import TypedDict, Optional
 import os
 from dotenv import load_dotenv
 
+
 class RedditConfig(TypedDict):
     client_id: str
     client_secret: str
     user_agent: str
+
 
 class Config:
     _instance: Optional['Config'] = None
