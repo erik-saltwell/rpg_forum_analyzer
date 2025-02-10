@@ -1,2 +1,5 @@
 - Use types everywhere possible.
 - Respond to chats in english always
+- Blanks lines should not include whitespace
+- generated code should pass Flake8 naming and formatting conventions
+- simple static data types should use @dataclass, not TypedDict
