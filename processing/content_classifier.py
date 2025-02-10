@@ -1,4 +1,7 @@
 from enum import Enum
+from typing import Any, Callable
+from langchain_core.runnables import Runnable
+from langchain_core.messages import BaseMessage
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
@@ -11,7 +14,7 @@ class ContentType(int, Enum):
     SHOW_AND_TELL = 4
 
 
-def _analyze_content_type_single(content: str, llm) -> ContentType:
+def _analyze_content_type_single(content: str, llm: Any) -> ContentType:
     template = """Acting as a professional rpg designer and redditor, please review the following tabletop-rpg related reddit post and classify it into one of the following post types:
     * Rules Question: This post is a question about the rules of a TTPRPG (tabletop roleplaying game).
     * Scenario Design Discussion: This post is a question or discussion about how to design scenarios or adventures for a TTRPG.
@@ -31,9 +34,13 @@ def _analyze_content_type_single(content: str, llm) -> ContentType:
 
     Reddit post content: {input}
     """
-    prompt = PromptTemplate.from_template(template=template)
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-
-    agent = {"input": lambda x: x["input"]} | prompt | llm
-    response = agent.invoke({"input": "What is the length of the text 'DOG' in characters?'"})
+    prompt: PromptTemplate = PromptTemplate.from_template(template=template)
+    llm: ChatOpenAI = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    
+    agent: Runnable = (
+        {"input": lambda x: x["input"]}  # type: Callable[[Any], Any]
+        | prompt 
+        | llm
+    )
+    response: BaseMessage = agent.invoke({"input": content})
     return ContentType.OTHER
