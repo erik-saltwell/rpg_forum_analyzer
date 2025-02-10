@@ -11,20 +11,17 @@ class _RedditScraper(ForumScraper):
     def _normalize_subreddit_name(self, subreddit_name: str) -> str:
         """Ensure the subreddit name does not start with 'r/' or 'r\\'."""
         subreddit_name_lower = subreddit_name.lower()
-        if subreddit_name_lower.startswith("r/") or subreddit_name_lower.startswith(
-            "r\\"
-        ):
+        if subreddit_name_lower.startswith("r/") or subreddit_name_lower.startswith("r\\"):
             return subreddit_name[2:]
         return subreddit_name
 
     def __init__(self, subreddit_name: str) -> None:
         config = Config()
-        reddit_config = config.reddit
         self.SubredditName = self._normalize_subreddit_name(subreddit_name)
         self.reddit = praw.Reddit(
-            client_id=reddit_config["client_id"],
-            client_secret=reddit_config["client_secret"],
-            user_agent=reddit_config["user_agent"],
+            client_id=config.reddit_client_id,
+            client_secret=config.reddit_client_secret,
+            user_agent=config.reddit_user_agent,
         )
 
     def _comment_to_node(self, comment: Comment) -> ConversationNode:
@@ -47,8 +44,6 @@ class _RedditScraper(ForumScraper):
             root = ConversationNode(
                 text=submission.selftext or submission.title,
                 timestamp=datetime.fromtimestamp(submission.created_utc),
-                responses=[
-                    self._comment_to_node(comment) for comment in submission.comments
-                ],
+                responses=[self._comment_to_node(comment) for comment in submission.comments],
             )
             yield root

@@ -1,5 +1,6 @@
 from enum import Enum
 from langchain.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
 
 
 class ContentType(int, Enum):
@@ -30,12 +31,9 @@ def _analyze_content_type_single(content: str, llm) -> ContentType:
 
     Reddit post content: {input}
     """
-    prompt = PromptTemplate.from_template(template=template).partial(tools=render_text_description(tools), tool_names=", ".join([t.name for t in tools]))
+    prompt = PromptTemplate.from_template(template=template)
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-    llm.stop = ["\nObservation"]
 
-    intermediate_steps = []
-
-    agent = {"input": lambda x: x["input"], "agent_scratchpad": lambda x: format_log_to_str(x["agent_scratchpad"])} | prompt | llm | ReActSingleInputOutputParser()
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke({"input": "What is the length of the text 'DOG' in characters?'", "agent_scratchpad": intermediate_steps})
+    agent = {"input": lambda x: x["input"]} | prompt | llm
+    response = agent.invoke({"input": "What is the length of the text 'DOG' in characters?'"})
     return ContentType.OTHER

@@ -1,27 +1,16 @@
-from dataclasses import dataclass
 from typing import Optional
 import os
 from dotenv import load_dotenv
 
 
-@dataclass
-class RedditConfig:
-    client_id: str
-    client_secret: str
-    user_agent: str
-
-
-@dataclass
-class StackExchangeConfig:
-    api_key: str
-    site: str
-    content_filter: str
-
-
 class Config:
-    _instance: Optional['Config'] = None
+    _instance: Optional["Config"] = None
+    reddit_client_id: str
+    reddit_client_secret: str
+    reddit_user_agent: str
+    openapi_key: str
 
-    def __new__(cls) -> 'Config':
+    def __new__(cls) -> "Config":
         if cls._instance is None:
             cls._instance = super(Config, cls).__new__(cls)
             cls._instance._load_configs()
@@ -31,15 +20,7 @@ class Config:
         load_dotenv()  # Load environment variables from .env file
 
         # Load Reddit configuration
-        self.reddit = RedditConfig(
-            client_id=os.getenv("REDDIT_CLIENT_ID", ""),
-            client_secret=os.getenv("REDDIT_CLIENT_SECRET", ""),
-            user_agent=os.getenv("REDDIT_USER_AGENT", "")
-        )
-
-        # Load StackExchange configuration
-        self.stackexchange = StackExchangeConfig(
-            api_key=os.getenv("STACKEXCHANGE_API_KEY", ""),
-            site=os.getenv("STACKEX_SITE", "rpg"),
-            content_filter=os.getenv("SE_CONTENT_FILTER", "withbody")
-        )
+        self.reddit_client_id = os.getenv("REDDIT_CLIENT_ID", "")
+        self.reddit_client_secret = os.getenv("REDDIT_CLIENT_SECRET", "")
+        self.reddit_user_agent = os.getenv("REDDIT_USER_AGENT", "")
+        self.openapi_key = os.getenv("OPENAI_API_KEY", "")
