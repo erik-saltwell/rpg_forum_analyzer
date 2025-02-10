@@ -11,4 +11,5 @@ dependencies = [
     "typer>=0.15.1",
     "python-dotenv>=1.0.0",
     "pytest>=8.3.4",
+    "langchain>=0.3.17",
 ]
