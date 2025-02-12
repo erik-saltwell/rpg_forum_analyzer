@@ -14,4 +14,5 @@ dependencies = [
     "langchain>=0.3.17",
     "langchain-openai>=0.3.4",
     "black>=25.1.0",
+    "langchain-ollama>=0.2.3",
 ]

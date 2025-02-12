@@ -2,18 +2,21 @@ from langchain_core.runnables import Runnable
 from langchain_core.messages import BaseMessage
 from langchain.prompts import PromptTemplate
 from langchain_core.language_models.chat_models import BaseChatModel
-from typing import Callable, Iterable
-
+from typing import Iterable
+from processing.LLMData import LLMData
 from numpy import double
 from core.ConversationNode import ConversationNode
 from core.PostData import PostData
 from core.ContentType import ContentType
+import logging
 
 
-def generate_post_type_assessments(posts: Iterable[ConversationNode], llm_generators: Iterable[Callable[[], BaseChatModel]]) -> list[PostData]:
+def generate_post_type_assessments(posts: Iterable[ConversationNode], llm_generators: Iterable[LLMData]) -> list[PostData]:
     return_value: list[PostData] = [PostData(post, [], ContentType.OTHER) for post in posts]
     for generator in llm_generators:
-        llm: BaseChatModel = generator()
+        logging.info(f"Processing with: {generator.name}")
+
+        llm: BaseChatModel = generator.generator()
         for post in return_value:
             assessment: ContentType = _analyze_content_type_single(post.Conversation.text, llm)
             post.ContentTypeAssessments.append(assessment)
@@ -86,6 +89,8 @@ def _analyze_content_type_single(content: str, llm: BaseChatModel) -> ContentTyp
     prompt: PromptTemplate = PromptTemplate.from_template(template=template)
 
     agent: Runnable = {"input": lambda x: x["input"]} | prompt | llm
+    logging.info(f"llm input: {input}")
     response: BaseMessage = agent.invoke({"input": content})
     response_text: str = str(response.content)
+    logging.info(f"llm output: {response_text}")
     return _convert_to_content_type(response_text)

@@ -7,7 +7,7 @@ from datetime import datetime
 from utils.config_loader import Config
 
 
-class _RedditScraper(ForumScraper):
+class RedditScraper(ForumScraper):
     def _normalize_subreddit_name(self, subreddit_name: str) -> str:
         """Ensure the subreddit name does not start with 'r/' or 'r\\'."""
         subreddit_name_lower = subreddit_name.lower()
@@ -42,7 +42,7 @@ class _RedditScraper(ForumScraper):
 
             # Create root node from submission
             root = ConversationNode(
-                text=submission.selftext or submission.title,
+                text=submission.title + "\n" + submission.selftext,
                 timestamp=datetime.fromtimestamp(submission.created_utc),
                 responses=[self._comment_to_node(comment) for comment in submission.comments],
             )

@@ -14,7 +14,7 @@
             "name": "Python Program",
             "type": "debugpy",
             "request": "launch",
-            "program": "rpg_forum_anlyzer.py",
+            "program": "rpg_forum_analyzer.py",
             "console": "integratedTerminal"
         }
     ]
