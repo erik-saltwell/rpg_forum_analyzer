@@ -1,4 +1,3 @@
-from enum import Enum
 from langchain_core.runnables import Runnable
 from langchain_core.messages import BaseMessage
 from langchain.prompts import PromptTemplate
@@ -8,14 +7,7 @@ from typing import Callable, Iterable
 from numpy import double
 from core.ConversationNode import ConversationNode
 from core.PostData import PostData
-
-
-class ContentType(int, Enum):
-    OTHER = 0
-    RULES_QUESTION = 1
-    SCENARIO_DESIGN = 2
-    PRODUCT_REVIEW = 3
-    SHOW_AND_TELL = 4
+from core.ContentType import ContentType
 
 
 def generate_post_type_assessments(posts: Iterable[ConversationNode], llm_generators: Iterable[Callable[[], BaseChatModel]]) -> list[PostData]:
