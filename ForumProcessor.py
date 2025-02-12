@@ -1,10 +1,9 @@
-from typing import Iterable, Callable
+from typing import Iterable
 from core.ConversationNode import ConversationNode
 from core.PostData import PostData
 import logging
 from scrapers.RedditScraper import RedditScraper
 from processing import content_classifier
-from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_ollama import ChatOllama
 from processing.LLMData import LLMData
 
