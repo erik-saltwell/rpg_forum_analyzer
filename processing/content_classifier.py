@@ -1,9 +1,13 @@
 from enum import Enum
-from typing import Any, Callable
 from langchain_core.runnables import Runnable
 from langchain_core.messages import BaseMessage
 from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_core.language_models.chat_models import BaseChatModel
+from typing import Callable, Iterable
+
+from numpy import double
+from core.ConversationNode import ConversationNode
+from core.PostData import PostData
 
 
 class ContentType(int, Enum):
@@ -14,7 +18,60 @@ class ContentType(int, Enum):
     SHOW_AND_TELL = 4
 
 
-def _analyze_content_type_single(content: str, llm: Any) -> ContentType:
+def generate_post_type_assessments(posts: Iterable[ConversationNode], llm_generators: Iterable[Callable[[], BaseChatModel]]) -> list[PostData]:
+    return_value: list[PostData] = [PostData(post, [], ContentType.OTHER) for post in posts]
+    for generator in llm_generators:
+        llm: BaseChatModel = generator()
+        for post in return_value:
+            assessment: ContentType = _analyze_content_type_single(post.Conversation.text, llm)
+            post.ContentTypeAssessments.append(assessment)
+    for post in return_value:
+        post.FinalAssessment = _coalesce_content_types(post.ContentTypeAssessments)
+    return return_value
+
+
+def _coalesce_content_types(content_types: list[ContentType]) -> ContentType:
+    total_assessments: double = double(len(content_types))
+    quorum_threshold = total_assessments / 2.0
+    for type in ContentType:
+        if _is_coalesced_content_type(content_types, type, total_assessments, quorum_threshold):
+            return type
+    return ContentType.OTHER
+
+
+def _is_coalesced_content_type(content_types: list[ContentType], type_to_check: ContentType, total_assessments: double, quorum_threshold: double) -> bool:
+    total_count_of_type = sum([1.0 if content == type_to_check else 0.0 for content in content_types])
+    if total_count_of_type >= quorum_threshold:
+        return True
+    return False
+
+
+def _convert_to_content_type(text: str) -> ContentType:
+    text = text.lower().strip(" \t\r\n'\"")
+    results: list[int] = []
+
+    results.append(0)
+    results.append(1 if "rules" in text else 0)
+    results.append(1 if "scenario" in text else 0)
+    results.append(1 if "review" in text else 0)
+    results.append(1 if ("show" in text and "tell" in text) else 0)
+
+    total_results: int = sum(results)
+    if total_results != 1:
+        return ContentType.OTHER
+    if results[ContentType.RULES_QUESTION]:
+        return ContentType.RULES_QUESTION
+    if results[ContentType.SCENARIO_DESIGN]:
+        return ContentType.SCENARIO_DESIGN
+    if results[ContentType.PRODUCT_REVIEW]:
+        return ContentType.PRODUCT_REVIEW
+    if results[ContentType.SHOW_AND_TELL]:
+        return ContentType.SHOW_AND_TELL
+
+    return ContentType.OTHER
+
+
+def _analyze_content_type_single(content: str, llm: BaseChatModel) -> ContentType:
     template = """Acting as a professional rpg designer and redditor, please review the following tabletop-rpg related reddit post and classify it into one of the following post types:
     * Rules Question: This post is a question about the rules of a TTPRPG (tabletop roleplaying game).
     * Scenario Design Discussion: This post is a question or discussion about how to design scenarios or adventures for a TTRPG.
@@ -35,12 +92,8 @@ def _analyze_content_type_single(content: str, llm: Any) -> ContentType:
     Reddit post content: {input}
     """
     prompt: PromptTemplate = PromptTemplate.from_template(template=template)
-    llm: ChatOpenAI = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-    
-    agent: Runnable = (
-        {"input": lambda x: x["input"]}  # type: Callable[[Any], Any]
-        | prompt 
-        | llm
-    )
+
+    agent: Runnable = {"input": lambda x: x["input"]} | prompt | llm
     response: BaseMessage = agent.invoke({"input": content})
-    return ContentType.OTHER
+    response_text: str = str(response.content)
+    return _convert_to_content_type(response_text)
