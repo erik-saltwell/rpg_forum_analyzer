@@ -402,3 +402,6 @@ FodyWeavers.xsd
 #environment variables
 .env
 .aider*
+
+#trace logging
+applog.txt
