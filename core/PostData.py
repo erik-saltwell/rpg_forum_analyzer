@@ -1,5 +1,5 @@
 from attr import dataclass
-from ConversationNode import ConversationNode
+from core.ConversationNode import ConversationNode
 from processing.content_classifier import ContentType
 
 
