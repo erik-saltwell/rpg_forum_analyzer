@@ -9,17 +9,22 @@ from core.ConversationNode import ConversationNode
 from core.PostData import PostData
 from core.ContentType import ContentType
 import logging
+from langsmith import traceable
+from ConsoleUI import ConsoleUI
 
 
-def generate_post_type_assessments(posts: Iterable[ConversationNode], llm_generators: Iterable[LLMData]) -> list[PostData]:
+def generate_post_type_assessments(posts: Iterable[ConversationNode], llm_generators: Iterable[LLMData], ui: ConsoleUI) -> list[PostData]:
     return_value: list[PostData] = [PostData(post, [], ContentType.OTHER) for post in posts]
     for generator in llm_generators:
+        ui.start_new_classifier(generator.name, len(return_value))
         logging.info(f"Processing with: {generator.name}")
 
         llm: BaseChatModel = generator.generator()
         for post in return_value:
+            ui.update_classifier()
             assessment: ContentType = _analyze_content_type_single(post.Conversation.text, llm)
             post.ContentTypeAssessments.append(assessment)
+        ui.stop_classifier()
     for post in return_value:
         post.FinalAssessment = _coalesce_content_types(post.ContentTypeAssessments)
     return return_value
@@ -50,6 +55,7 @@ def _convert_to_content_type(text: str) -> ContentType:
     results.append(1 if "scenario" in text else 0)
     results.append(1 if "review" in text else 0)
     results.append(1 if ("show" in text and "tell" in text) else 0)
+    results.append(1 if "adventure" in text else 0)
 
     total_results: int = sum(results)
     if total_results != 1:
@@ -62,26 +68,31 @@ def _convert_to_content_type(text: str) -> ContentType:
         return ContentType.PRODUCT_REVIEW
     if results[ContentType.SHOW_AND_TELL]:
         return ContentType.SHOW_AND_TELL
+    if results[ContentType.ADVENTURE_QUESTION]:
+        return ContentType.ADVENTURE_QUESTION
 
     return ContentType.OTHER
 
 
+@traceable
 def _analyze_content_type_single(content: str, llm: BaseChatModel) -> ContentType:
     template = """Acting as a professional rpg designer and redditor, please review the following tabletop-rpg related reddit post and classify it into one of the following post types:
     * Rules Question: This post is a question about the rules of a TTPRPG (tabletop roleplaying game).
     * Scenario Design Discussion: This post is a question or discussion about how to design scenarios or adventures for a TTRPG.
     * Product Review: This post is a review of tabletop roleplaying game or a tabletop roleplaying game supplement.
     * Show and Tell: This post is someone describing something cool they did in their game
+    * Adventure Question: This post is asking questions about how to run a specific adventure or scenario published for the TTRPG.
     * Other: This post does not fall into any of hte above categories.
 
-    Output Format: Your response should only be one of the following strings: 'Rules Question', 'Scenario Design Discussion', 'Product Review', 'Show and Tell', 'Other'.
+    Output Format: Your response should only be one of the following strings: 'Rules Question', 'Scenario Design Discussion', 'Product Review', 'Show and Tell', 'Adventure Question', 'Other'.
     It should not include any explanation or preamble.  It should only be one of these terms with no additional text.
 
     Example posts:
     * Rules Question: Hi, all. I'm reading through the books with the hopes of running some games soon -- if you are local to Nagoya city in Japan, hit me up! One thing that I am a bit puzzled is reduced the player's saves, and recovering losses to those saves. On my first reading, I did not notice anything about how or when a player's save scores would be reduced. I did see how minimum stress could be raised. When I looked at the recovery options, though, I noticed that several of them had effects related to restoring save scores. This left me a bit puzzled. I hope this is a simple question with a simple answer.
-    * Scenario Design: My players just crash-landed on an unknown planet, and I want to give them a tight survival horror experience. Ultimately, I plan to give them access to their first ship. Finding a fully-fledged module would be the best, but I also consider cool planet traits/secrets. My best idea so far is to make occasional glass rains. The planet is orbiting a black hole if that matters. Thanks!
+    * Scenario Design: Advice for more Carcanid themed scenarios Hi! So my players crit failed very badly at stopping the carcs in Anither Bug Hunt and the invasion of the milky way is due... What are some modules out there that may help or inspire this particular story arc?
     * Product Review: My table just played Another Bug Hunt and we loved it!  The tone was totally spooky.
     * Show and Tell: I wrote a thing about the set up and beginning play of a Mothership Play By Post Game on Discord using Desert Moon of Karth. Mothership Play By Post.
+    * Adventure Question: Tips on running Gradient Descent. I've been readingGradient Descent, and it looks fantastic. However, I’m struggling to organize my thoughts into a cohesive overarching plot for a 2-4 session run and structure the module’s content effectively. I’d love any advice on running it , and I have a few specific questions that might help with prep: What’s the best way to track time-based events, like Troubleshooter raids? How should I handle encounters, whether they’re peaceful or hostile? Which table should I use for an encounter if there's none in the current floor?
     * Other: Wow THE PLEA has reached COPPER BEST SELLER status on Drivethru! Thank you guys so much! We didn't think our first Mothership module would do that well! If you're missing out, here's some links for you to check out!     Begin!
 
     Reddit post content: {input}

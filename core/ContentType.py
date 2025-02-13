@@ -7,3 +7,4 @@ class ContentType(int, Enum):
     SCENARIO_DESIGN = 2
     PRODUCT_REVIEW = 3
     SHOW_AND_TELL = 4
+    ADVENTURE_QUESTION = 5

@@ -5,6 +5,7 @@ import praw  # type: ignore
 from praw.models import Comment  # type: ignore
 from datetime import datetime
 from utils.config_loader import Config
+from ConsoleUI import ConsoleUI
 
 
 class RedditScraper(ForumScraper):
@@ -33,10 +34,11 @@ class RedditScraper(ForumScraper):
             responses=responses,
         )
 
-    def Scrape(self, limit: int) -> Iterator[ConversationNode]:
+    def Scrape(self, limit: int, ui: ConsoleUI) -> Iterator[ConversationNode]:
         subreddit = self.reddit.subreddit(self.SubredditName)
 
         for submission in subreddit.new(limit=limit):
+            ui.update_reddit()
             # Ensure all comments are loaded
             submission.comments.replace_more(limit=None)
 
