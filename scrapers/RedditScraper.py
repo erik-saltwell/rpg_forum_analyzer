@@ -1,3 +1,4 @@
+from core.PostData import PostData
 from scrapers.ForumScraper import ForumScraper
 from typing import Iterator
 from core.ConversationNode import ConversationNode
@@ -6,6 +7,7 @@ from praw.models import Comment  # type: ignore
 from datetime import datetime
 from utils.config_loader import Config
 from ConsoleUI import ConsoleUI
+from core.ContentType import ContentType
 
 
 class RedditScraper(ForumScraper):
@@ -34,7 +36,7 @@ class RedditScraper(ForumScraper):
             responses=responses,
         )
 
-    def Scrape(self, limit: int, ui: ConsoleUI) -> Iterator[ConversationNode]:
+    def Scrape(self, limit: int, ui: ConsoleUI) -> Iterator[PostData]:
         subreddit = self.reddit.subreddit(self.SubredditName)
 
         for submission in subreddit.new(limit=limit):
@@ -48,4 +50,5 @@ class RedditScraper(ForumScraper):
                 timestamp=datetime.fromtimestamp(submission.created_utc),
                 responses=[self._comment_to_node(comment) for comment in submission.comments],
             )
-            yield root
+            post: PostData = PostData(Title=submission.title, Conversation=root, EstimatedTypes=[], FinalType=ContentType.OTHER)
+            yield post

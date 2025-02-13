@@ -1,5 +1,5 @@
+from core.PostData import PostData
 from scrapers.RedditScraper import RedditScraper, ForumScraper
-from core.ConversationNode import ConversationNode
 from ConsoleUI import ConsoleUI
 from rich.progress import Progress
 from rich.theme import Theme
@@ -15,11 +15,11 @@ def test_double_reddit_scrape() -> None:
 
 
 def _run_reddit_Scrape(subreddit_name: str, expected_post_count: int) -> None:
-    with Console(theme=Theme({"bar.complete": "cyan", "bar.finished": "gray30", "bar.pulse": "cyan"})) as console:
+    with Console(theme=Theme({"bar.complete": "magenta", "bar.finished": "gray30", "bar.pulse": "magenta"})) as console:
         with Progress(console=console) as progress:
             ui: ConsoleUI = ConsoleUI(progress)
             ui.start_reddit()
             scraper: ForumScraper = RedditScraper(subreddit_name)
-            nodes: list[ConversationNode] = list(scraper.Scrape(limit=expected_post_count, ui=ui))
+            nodes: list[PostData] = list(scraper.Scrape(limit=expected_post_count, ui=ui))
             ui.stop_reddit()
             assert len(nodes) == expected_post_count, "Scrape should return at least 1 ConversationNode"

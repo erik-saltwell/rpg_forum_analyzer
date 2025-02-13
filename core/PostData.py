@@ -6,5 +6,6 @@ from core.ContentType import ContentType
 @dataclass
 class PostData:
     Conversation: ConversationNode
-    ContentTypeAssessments: list[ContentType]
-    FinalAssessment: ContentType
+    EstimatedTypes: list[ContentType]
+    FinalType: ContentType
+    Title: str

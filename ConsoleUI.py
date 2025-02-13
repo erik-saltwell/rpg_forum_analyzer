@@ -10,7 +10,7 @@ class ConsoleUI:
     _reddit_post_count: int
     _classifier_task_id: TaskID
     _classifier_name: str
-    _active_color: str = "cyan"
+    _active_color: str = "magenta"
     _complete_color: str = "gray30"
 
     def __init__(self, progress: Progress):
