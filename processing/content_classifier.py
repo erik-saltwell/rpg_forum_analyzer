@@ -13,6 +13,8 @@ from ConsoleUI import ConsoleUI
 
 
 def update_post_types(posts: list[PostData], llm_generators: Iterable[LLMData], ui: ConsoleUI) -> None:
+    ret_val: [[int]] = []
+
     for generator in llm_generators:
         ui.start_new_classifier(generator.name, len(posts))
         logging.info(f"Processing with: {generator.name}")
