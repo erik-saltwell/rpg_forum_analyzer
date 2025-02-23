@@ -12,19 +12,24 @@ from langsmith import traceable
 from ConsoleUI import ConsoleUI
 
 
-def update_post_types(posts: list[PostData], llm_generators: Iterable[LLMData], ui: ConsoleUI) -> None:
+def update_post_types(posts: list[PostData], llm_generators: Iterable[LLMData], ui: ConsoleUI) -> list[list[ContentType]]:
+    return_values: list[list[ContentType]] = [[] for post in posts]
     for generator in llm_generators:
         ui.start_new_classifier(generator.name, len(posts))
         logging.info(f"Processing with: {generator.name}")
 
         llm: BaseChatModel = generator.generator()
+        post_id: int = 0
         for post in posts:
             ui.update_classifier()
             assessment: ContentType = _analyze_content_type_single(post.Title, post.Conversation.text, llm)
             post.EstimatedTypes.append(assessment)
+            return_values[post_id].append(assessment)
+            post_id = post_id + 1
         ui.stop_classifier()
     for post in posts:
         post.FinalType = _coalesce_content_types(post.EstimatedTypes)
+    return return_values
 
 
 def _coalesce_content_types(content_types: list[ContentType]) -> ContentType:
