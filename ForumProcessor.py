@@ -27,10 +27,13 @@ class ForumProcessor:
                 posts: list[PostData] = list(scraper.Scrape(max_post_limit, ui))
                 ui.stop_reddit()
                 llm_generators: Iterable[LLMData] = self._create_llm_generators()
-                content_classifier.update_post_types(posts, llm_generators, ui)
-                for post in posts:
-                    print(f" {post.FinalType}: {post.Title}")
-                pass
+                results_table = content_classifier.update_post_types(posts, llm_generators, ui)
+                
+                for post, post_results in zip(posts, results_table):
+                    print(f"Post: {post.Title}")
+                    for generator, result in zip(llm_generators, post_results):
+                        print(f"  {generator.name}: {result}")
+                    print(f"Final Type: {post.FinalType}\n")
 
     def _create_llm_generators(self) -> Iterable[LLMData]:
         return_values: list[LLMData] = []
